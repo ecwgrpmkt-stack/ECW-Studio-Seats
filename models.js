@@ -6,7 +6,6 @@ const viewer = document.querySelector("#viewer3d");
 let globalIdleTimer = null;       // Controls the Hand Icon
 let cameraIdleTimer = null;       // Controls the 3D Auto-Rotation
 let slideTimer = null;            // Controls the 60s auto-slide
-let colorEngineTimer = null;   
 
 const IDLE_DELAY = 3000;       
 const SLIDE_DELAY = 60000;     
@@ -14,7 +13,9 @@ let savedOrbit = null;
 
 async function initShowroom() {
     const loader = document.getElementById('ecwLoader');
+    const fadeOverlay = document.getElementById('fadeOverlay');
     if(loader) loader.classList.add('active');
+    if(fadeOverlay) fadeOverlay.classList.add('active');
 
     try {
         models = [
@@ -36,14 +37,33 @@ async function initShowroom() {
 
     } catch (error) {
         console.error("Error loading local models:", error);
-    } finally {
-        if(loader) setTimeout(() => loader.classList.remove('active'), 300);
+        if(loader) loader.classList.remove('active');
+        if(fadeOverlay) fadeOverlay.classList.remove('active');
     }
 }
 
 function startApp() {
     currentIndex = 0; 
     buildVariantButtons();
+
+    const fadeOverlay = document.getElementById('fadeOverlay');
+    const loader = document.getElementById('ecwLoader');
+
+    const onModelLoad = () => {
+        // 1. Analyze and apply target colors instantly
+        if (typeof ColorEngine !== 'undefined') {
+            try { ColorEngine.analyze(viewer); } catch(e) {}
+        }
+        // 2. Wait a split second for the colors to render before revealing the screen
+        setTimeout(() => {
+            if(fadeOverlay) fadeOverlay.classList.remove('active');
+            if(loader) loader.classList.remove('active');
+            resetGlobalTimers(); 
+        }, 50);
+        viewer.removeEventListener('load', onModelLoad);
+    };
+    viewer.addEventListener('load', onModelLoad);
+
     loadModelData(currentIndex);
     setupEvents();
     
@@ -94,13 +114,24 @@ function transitionToModel(index) {
 
     setTimeout(() => {
         currentIndex = index;
-        loadModelData(currentIndex);
 
-        setTimeout(() => {
-            fadeOverlay.classList.remove('active');
-            loader.classList.remove('active');
-            resetGlobalTimers(); 
-        }, 250); 
+        // Wait for the new model to be 100% loaded before hiding the loading screen
+        const onModelLoad = () => {
+            // 1. Analyze and apply target colors instantly
+            if (typeof ColorEngine !== 'undefined') {
+                try { ColorEngine.analyze(viewer); } catch(e) {}
+            }
+            // 2. Wait a split second for the colors to render before revealing the screen
+            setTimeout(() => {
+                fadeOverlay.classList.remove('active');
+                loader.classList.remove('active');
+                resetGlobalTimers(); 
+            }, 50);
+            viewer.removeEventListener('load', onModelLoad); // Clean up event after firing
+        };
+        viewer.addEventListener('load', onModelLoad);
+
+        loadModelData(currentIndex);
 
     }, 250); 
 }
@@ -164,21 +195,15 @@ function setupEvents() {
             }
         });
 
-        // 3. COLOR ENGINE DELAY
-        viewer.addEventListener('load', () => {
-            if (typeof ColorEngine !== 'undefined') {
-                clearTimeout(colorEngineTimer);
-                colorEngineTimer = setTimeout(() => {
-                    try { ColorEngine.analyze(viewer); } catch(e) {}
-                }, 400); 
-            }
-        });
-
         // 4. ERROR HANDLING (Helps debug missing 3D files)
         viewer.addEventListener('error', (error) => {
             console.error("Model Viewer Error:", error);
             alert("⚠️ Cannot load the 3D file!\n\nTrying to load: " + models[currentIndex].src + "\n\n1. If Windows hides extensions, you may have accidentally named it 'seat2.glb.glb'.\n2. Open your 'models' folder, right-click the file, click 'Properties', and check the exact name.\n3. Make sure the file size is not 0 bytes.");
             viewer.autoRotate = true; // Resume spinning the old model
+            
+            // Hide the loading screen if an error occurs so the user isn't stuck
+            document.getElementById('fadeOverlay').classList.remove('active');
+            document.getElementById('ecwLoader').classList.remove('active');
         });
     }
 }

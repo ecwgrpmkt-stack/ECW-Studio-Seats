@@ -33,6 +33,16 @@ const DrawingTool = {
         document.getElementById('clearBtn')?.addEventListener('click', () => this.clear());
         document.getElementById('saveBtn')?.addEventListener('click', () => this.saveScreenshot());
 
+        const bgPicker = document.getElementById('drawBgColor');
+        if (bgPicker) {
+            const updateBg = (e) => {
+                const app = document.getElementById('app');
+                if(app) app.style.setProperty('background', e.target.value, 'important');
+            };
+            bgPicker.addEventListener('input', updateBg);
+            bgPicker.addEventListener('change', updateBg);
+        }
+
         document.getElementById('eraserBtn')?.addEventListener('click', () => this.setMode(this.isEraser ? 'pen' : 'eraser'));
 
         // Mouse Events
@@ -74,7 +84,7 @@ const DrawingTool = {
             if(toolbar) toolbar.style.display = 'flex';
             if(dock) dock.style.display = 'none';
             if(topBar) topBar.style.display = 'none';
-            if(colorDock) colorDock.style.display = 'none';
+            if(colorDock) colorDock.style.setProperty('display', 'none', 'important');
             
             const indicator = document.getElementById('idleIndicator');
             if(indicator) indicator.classList.remove('visible');
@@ -83,6 +93,12 @@ const DrawingTool = {
                 viewer.cameraControls = false; // Lock 3D Model
                 viewer.autoRotate = false;
             }
+            
+            const app = document.getElementById('app');
+            if(app) {
+                app.style.setProperty('background', document.getElementById('drawBgColor')?.value || '#1a1a1a', 'important');
+            }
+
             clearTimeout(globalIdleTimer); // Stop hand icon from showing up
             clearTimeout(cameraIdleTimer); // Stop pending rotations
             clearTimeout(slideTimer);      // Stop auto-slides while drawing
@@ -92,12 +108,16 @@ const DrawingTool = {
             if(toolbar) toolbar.style.display = 'none';
             if(dock) dock.style.display = 'flex';
             if(topBar) topBar.style.display = 'flex';
-            if(colorDock) colorDock.style.display = ''; // Restore Color UI
+            if(colorDock) colorDock.style.removeProperty('display'); // Restore Color UI
             
             if(viewer) {
                 viewer.cameraControls = true; // Unlock 3D Model
                 viewer.autoRotate = true;     // Resume rotation
             }
+            
+            const app = document.getElementById('app');
+            if(app) app.style.removeProperty('background'); // Restore original gradient background
+
             this.clear();
             this.setMode('pen');
             resetGlobalTimers();
@@ -163,7 +183,8 @@ const DrawingTool = {
             mergeCanvas.height = this.canvas.height;
             const mCtx = mergeCanvas.getContext('2d');
 
-            mCtx.fillStyle = '#050505'; // Background match
+            const bgColor = document.getElementById('drawBgColor')?.value || '#1a1a1a';
+            mCtx.fillStyle = bgColor; 
             mCtx.fillRect(0, 0, mergeCanvas.width, mergeCanvas.height);
 
             // 3. Bake the Image & Trigger Download
@@ -430,6 +451,11 @@ function setupEvents() {
         // 2. 3D SPECIFIC INTERACTION: Stops seat rotation. Resumes after 3s of letting go.
         viewer.addEventListener('camera-change', (e) => {
             if (e.detail.source === 'user-interaction') {
+                const drawCanvas = document.getElementById('drawingCanvas');
+                if (drawCanvas && drawCanvas.classList.contains('active')) return; // Strictly block camera logic during draw mode
+
+                resetGlobalTimers(); // Prevent auto-slide while actively rotating the model
+
                 // Stop spinning
                 viewer.autoRotate = false;
                 
@@ -470,6 +496,15 @@ function setupEvents() {
 
 // Triggers whenever the mouse moves ANYWHERE on the screen (UI, buttons, background)
 function resetGlobalTimers() {
+    const drawCanvas = document.getElementById('drawingCanvas');
+    
+    // If the user is currently drawing, strictly pause ALL background presentation timers!
+    if (drawCanvas && drawCanvas.classList.contains('active')) {
+        clearTimeout(globalIdleTimer);
+        clearTimeout(slideTimer);
+        return; 
+    }
+
     const indicator = document.getElementById('idleIndicator');
     
     // Instantly hide the hand icon

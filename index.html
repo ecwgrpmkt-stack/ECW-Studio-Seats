@@ -12,7 +12,21 @@
 <body>
     <div id="app" class="showroom-mode">
         
-        <div id="fadeOverlay"></div>
+        <div id="fadeOverlay" class="active"></div>
+
+        <canvas id="drawingCanvas"></canvas>
+        <div id="drawingToolbar" style="display: none;">
+            <div style="color: #aaa; font-size: 0.65rem; text-align: center; margin-bottom: 5px; font-weight: bold; letter-spacing: 1px;">DRAW</div>
+            <input type="color" id="brushColor" value="#ff3333" title="Brush Color" style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
+            <div style="color: #aaa; font-size: 0.65rem; text-align: center; margin-top: 10px; font-weight: bold;">SIZE</div>
+            <input type="range" id="brushSize" min="2" max="20" value="5" title="Brush Size" style="width: 80px; margin-bottom: 10px;">
+            
+            <button class="tool-btn" id="eraserBtn" title="Toggle Eraser" style="margin-top: 5px;">🧽</button>
+            
+            <button class="tool-btn" id="clearBtn" title="Clear Drawing" style="margin-top: 10px;">🗑</button>
+            <button class="tool-btn" id="saveBtn" title="Save Screenshot" style="background: #ff3333; border-color: #ff3333; margin-top: 10px;">💾</button>
+            <button class="tool-btn" id="closeDrawBtn" title="Exit Drawing Mode" style="margin-top: 10px;">❌</button>
+        </div>
 
         <div class="top-ui-bar">
             <a href="#" id="shellBackBtn" class="back-btn">
@@ -92,12 +106,17 @@
             </div>
         </div>
         <div id="bottomDock">
-            <div class="fs-wrapper">
+            <div class="fs-wrapper" style="display: flex; gap: 10px;">
+                <button id="drawBtn" title="Annotate Model">✎</button>
                 <button id="fsBtn" title="Fullscreen">⛶</button>
             </div>
             
             <div class="thumbnail-bar">
                 <div id="variantPanel" class="variant-btn-area"></div>
+            </div>
+            
+            <div id="subVariantBar" class="thumbnail-bar" style="display: none; padding: 5px 15px; margin-top: 10px;">
+                <div id="subVariantPanel" class="variant-btn-area" style="gap: 10px;"></div>
             </div>
         </div>
         
@@ -150,7 +169,6 @@
             }
         });
     </script>
-</body>
-</html>
+
 </body>
 </html>

@@ -119,7 +119,7 @@ const ColorEngine = {
         const seat2Module = this.seat2Picker ? this.seat2Picker.closest('.rgb-picker-module') : null;
         if (this.seat2Materials.length > 0) {
             if (seat2Module) seat2Module.style.display = 'block';
-            this.initialSeat2Hex = "#555555"; 
+            this.initialSeat2Hex = "#270202"; 
             
             this.seat2Picker.value = this.initialSeat2Hex;
             this.seat2Hex.innerText = this.initialSeat2Hex;

@@ -239,6 +239,15 @@ async function initShowroom() {
                 src: "models/Alphad Seat/alphad_seat.glb",
                 poster: "https://placehold.co/400x300/222/FFF.png?text=No+Preview",
                 variant: "ALPHAD SEAT"
+            },
+            {
+                variant: "SOFA BED",
+                poster: "https://placehold.co/400x300/222/FFF.png?text=No+Preview",
+                subVariants: [
+                    { name: "4.0", src: "models/Sofa Bed/Sofa_Bed_4.0.glb" },
+                    { name: "2.0", src: "models/Sofa Bed/Sofa_Bed_2.0.glb" }
+                ],
+                activeSubIndex: 0
             }
         ];
 

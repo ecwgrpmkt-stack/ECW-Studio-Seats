@@ -248,6 +248,11 @@ async function initShowroom() {
                     { name: "2.0", src: "models/Sofa Bed/Sofa_Bed_2.0.glb" }
                 ],
                 activeSubIndex: 0
+            },
+            {
+                src: "models/5.0 Seat/5.0.glb",
+                poster: "https://placehold.co/400x300/222/FFF.png?text=No+Preview",
+                variant: "5.0 SEAT"
             }
         ];
 
